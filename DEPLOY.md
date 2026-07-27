@@ -2,31 +2,37 @@
 
 Public deploy for this static Vite app.
 
-## 1. Push to GitHub
+**GitHub repo:** https://github.com/Phil7-77/tshirt-preorder
 
-If the remote is not set yet:
+## Create the Cloudflare Pages project
 
-```bash
-git remote add origin https://github.com/<your-username>/<repo-name>.git
-git push -u origin master
-```
-
-## 2. Create the Cloudflare Pages project
-
-1. Go to [Cloudflare Pages](https://dash.cloudflare.com/?to=/:account/pages)
-2. **Create** → **Connect to Git** → choose this repository
-3. Build settings:
+1. Sign up / log in at [Cloudflare](https://dash.cloudflare.com/sign-up) (free)
+2. Go to **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
+3. Authorize Cloudflare to access GitHub, then select **`Phil7-77/tshirt-preorder`**
+4. Build settings:
    - **Framework preset:** Vite
+   - **Production branch:** `master`
    - **Build command:** `npm run build`
    - **Build output directory:** `dist`
-   - **Root directory:** `/` (leave default)
-4. Click **Save and Deploy**
+5. Click **Save and Deploy**
 
-After the first deploy succeeds, Cloudflare gives you a public URL like:
+When it finishes, you’ll get a public URL like:
 
-`https://<project-name>.pages.dev`
+`https://tshirt-preorder.pages.dev`
 
-Share that link. Anyone can open it; orders still stay in each phone’s browser (`localStorage`).
+(or a similar name Cloudflare assigns)
+
+Share that link. Anyone can open it; each phone still keeps its own order list.
+
+## Updates later
+
+Push to `master` and Cloudflare rebuilds automatically:
+
+```bash
+git add .
+git commit -m "Your message"
+git push
+```
 
 ## Optional: custom domain
 
