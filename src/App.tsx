@@ -15,6 +15,7 @@ import {
 
 export default function App() {
   const [orders, setOrders] = useState<Order[]>([])
+  const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -23,6 +24,23 @@ export default function App() {
   const [deleting, setDeleting] = useState<Order | null>(null)
   const [preview, setPreview] = useState<{ src: string; alt: string } | null>(null)
   const sheetsReady = isSheetsConfigured()
+
+  const query = search.trim().toLowerCase()
+  const filteredOrders = query
+    ? orders.filter((order) => {
+        const haystack = [
+          order.name,
+          order.phone,
+          order.local,
+          order.color,
+          order.size,
+          order.paymentDataUrl ? 'paid' : 'unpaid',
+        ]
+          .join(' ')
+          .toLowerCase()
+        return haystack.includes(query)
+      })
+    : orders
 
   async function refreshOrders() {
     const next = await fetchOrders()
@@ -178,102 +196,125 @@ export default function App() {
         ) : orders.length === 0 ? (
           <div className="empty">
             <h2>No orders yet</h2>
-            <p>Add the first pre-order. Everyone using this link shares the same list.</p>
-            <button type="button" className="btn primary" onClick={openAdd} disabled={saving}>
-              Add order
-            </button>
+            <p>Click on the Add order button to make your order</p>
           </div>
         ) : (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Local</th>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Color</th>
-                  <th>Size</th>
-                  <th>Payment</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td data-label="Local">{order.local}</td>
-                    <td data-label="Name">{order.name}</td>
-                    <td data-label="Phone">{order.phone}</td>
-                    <td data-label="Color">
+          <>
+            <div className="search-bar">
+              <label className="search-label" htmlFor="member-search">
+                Search members
+              </label>
+              <input
+                id="member-search"
+                type="search"
+                className="search-input"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by name, phone, local…"
+                autoComplete="off"
+              />
+              {query ? (
+                <p className="search-meta">
+                  {filteredOrders.length} of {orders.length} order
+                  {orders.length === 1 ? '' : 's'}
+                </p>
+              ) : null}
+            </div>
+
+            {filteredOrders.length === 0 ? (
+              <div className="empty">
+                <h2>No matches</h2>
+                <p>Try another name, phone number, or local.</p>
+              </div>
+            ) : (
+          <div className="orders-panel">
+            <div className="orders-head" aria-hidden="true">
+              <span>Local</span>
+              <span>Name</span>
+              <span>Phone</span>
+              <span>Color</span>
+              <span>Size</span>
+              <span>Payment</span>
+              <span>Actions</span>
+            </div>
+            <ul className="orders-list">
+              {filteredOrders.map((order) => (
+                <li key={order.id} className="order-card">
+                  <div className="order-local">{order.local}</div>
+                  <div className="order-name">{order.name}</div>
+                  <a className="order-phone" href={`tel:${order.phone}`}>
+                    {order.phone}
+                  </a>
+                  <div className="order-color">
+                    <button
+                      type="button"
+                      className="thumb-btn"
+                      onClick={() =>
+                        setPreview({
+                          src: COLOR_IMAGES[order.color],
+                          alt: `${order.color} t-shirt`,
+                        })
+                      }
+                      title={`Preview ${order.color}`}
+                    >
+                      <img src={COLOR_IMAGES[order.color]} alt="" />
+                      <span>{order.color}</span>
+                    </button>
+                  </div>
+                  <div className="order-size">
+                    <span className="size-pill">{order.size}</span>
+                  </div>
+                  <div className="order-payment">
+                    {order.paymentDataUrl ? (
                       <button
                         type="button"
-                        className="thumb-btn"
+                        className="thumb-btn payment-thumb"
                         onClick={() =>
                           setPreview({
-                            src: COLOR_IMAGES[order.color],
-                            alt: `${order.color} t-shirt`,
+                            src: order.paymentDataUrl,
+                            alt: `Payment for ${order.name}`,
                           })
                         }
-                        title={`Preview ${order.color}`}
+                        title="Preview payment"
                       >
-                        <img src={COLOR_IMAGES[order.color]} alt="" />
-                        <span>{order.color}</span>
+                        <img src={order.paymentDataUrl} alt="" />
+                        <span className="status-pill paid">Paid</span>
                       </button>
-                    </td>
-                    <td data-label="Size">
-                      <span className="size-pill">{order.size}</span>
-                    </td>
-                    <td data-label="Payment">
-                      {order.paymentDataUrl ? (
-                        <button
-                          type="button"
-                          className="thumb-btn payment-thumb"
-                          onClick={() =>
-                            setPreview({
-                              src: order.paymentDataUrl,
-                              alt: `Payment for ${order.name}`,
-                            })
-                          }
-                          title="Preview payment"
-                        >
-                          <img src={order.paymentDataUrl} alt="" />
-                          <span className="status-pill paid">Paid</span>
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="status-pill unpaid"
-                          onClick={() => openEdit(order)}
-                          title="Add payment screenshot"
-                        >
-                          Unpaid
-                        </button>
-                      )}
-                    </td>
-                    <td data-label="Actions">
-                      <div className="row-actions">
-                        <button
-                          type="button"
-                          className="link-btn"
-                          onClick={() => openEdit(order)}
-                          disabled={saving}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="link-btn danger"
-                          onClick={() => handleDelete(order)}
-                          disabled={saving}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    ) : (
+                      <button
+                        type="button"
+                        className="status-pill unpaid"
+                        onClick={() => openEdit(order)}
+                        title="Add payment screenshot"
+                      >
+                        Unpaid
+                      </button>
+                    )}
+                  </div>
+                  <div className="order-actions">
+                    <button
+                      type="button"
+                      className="link-btn"
+                      onClick={() => openEdit(order)}
+                      disabled={saving}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="link-btn danger"
+                      onClick={() => handleDelete(order)}
+                      disabled={saving}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
+            )}
+          </>
         )}
       </main>
 

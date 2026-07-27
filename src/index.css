@@ -80,8 +80,8 @@ select {
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/ypg-logo.png') center / min(70vw, 420px) no-repeat;
-  opacity: 0.22;
+  background: url('/ypg-logo.png') center / min(140vw, 110vh) no-repeat;
+  opacity: 0.18;
   pointer-events: none;
 }
 
@@ -248,51 +248,113 @@ select {
   color: var(--muted);
 }
 
-.table-wrap {
-  overflow-x: auto;
+.search-bar {
+  margin-bottom: 0.85rem;
+}
+
+.search-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.search-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ink);
+  box-shadow: 0 8px 24px rgba(18, 40, 70, 0.06);
+}
+
+.search-input:focus {
+  outline: 2px solid rgba(26, 111, 212, 0.35);
+  border-color: var(--accent);
+}
+
+.search-meta {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.orders-panel {
   background: var(--surface);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: calc(var(--radius) + 4px);
   box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 720px;
+.orders-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-th,
-td {
-  padding: 0.9rem 1rem;
-  text-align: left;
-  vertical-align: middle;
+.orders-head {
+  display: none;
 }
 
-th {
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-  border-bottom: 1px solid var(--line);
-  background: rgba(247, 250, 248, 0.9);
-}
-
-td {
+.order-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.95rem 1rem;
   border-bottom: 1px solid #e7edf4;
+  background: rgba(255, 255, 255, 0.72);
 }
 
-tbody tr:last-child td {
+.order-card:last-child {
   border-bottom: none;
 }
 
-tbody tr {
-  transition: background 0.15s ease;
+.order-name {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ink);
 }
 
-tbody tr:hover {
-  background: rgba(217, 233, 251, 0.45);
+.order-local {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.order-phone {
+  color: var(--accent-deep);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.98rem;
+  width: fit-content;
+}
+
+.order-phone:hover {
+  text-decoration: underline;
+}
+
+.order-color,
+.order-size,
+.order-payment,
+.order-actions {
+  min-width: 0;
+}
+
+.order-actions {
+  display: flex;
+  gap: 0.85rem;
+  padding-top: 0.15rem;
 }
 
 .thumb-btn {
@@ -655,181 +717,114 @@ tbody tr:hover {
     font-size: 1.25rem;
   }
 
-  .table-wrap {
-    overflow: visible;
-    border-radius: 12px;
-    border: none;
+  .empty p {
+    margin-bottom: 0;
+  }
+
+  .orders-panel {
     background: transparent;
+    border: none;
     box-shadow: none;
     backdrop-filter: none;
+    overflow: visible;
   }
 
-  table {
-    min-width: 0;
-    width: 100%;
-  }
-
-  thead {
-    display: none;
-  }
-
-  tbody {
+  .orders-list {
     display: grid;
-    gap: 0.65rem;
-    padding: 0;
+    gap: 0.7rem;
   }
 
-  tbody tr {
-    display: grid;
+  .order-card {
     grid-template-columns: 1fr auto;
     grid-template-areas:
-      'name actions'
+      'name payment'
       'local local'
       'phone phone'
-      'color color'
-      'size size'
-      'payment payment';
-    gap: 0.45rem 0.65rem;
-    padding: 0.8rem 0.85rem;
+      'color size'
+      'actions actions';
+    gap: 0.55rem 0.75rem;
+    padding: 0.95rem;
     border: 1px solid var(--line);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 8px 24px rgba(18, 40, 70, 0.06);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 10px 28px rgba(18, 40, 70, 0.08);
   }
 
-  tbody tr:hover {
-    background: #fff;
-  }
-
-  tbody tr:last-child {
-    border-bottom: 1px solid var(--line);
-  }
-
-  td {
-    display: grid;
-    grid-template-columns: 5.25rem minmax(0, 1fr);
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0;
-    border: none;
-    min-width: 0;
-  }
-
-  td::before {
-    content: attr(data-label);
-    font-size: 0.68rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 700;
-  }
-
-  td > * {
-    justify-self: end;
-    max-width: 100%;
-    min-width: 0;
-  }
-
-  td[data-label='Local'] {
-    grid-area: local;
-  }
-
-  td[data-label='Name'] {
+  .order-name {
     grid-area: name;
-    grid-template-columns: 1fr;
-    gap: 0;
-    font-size: 1.05rem;
-    font-weight: 700;
-    line-height: 1.25;
-    text-align: left;
+    font-size: 1.12rem;
     align-self: center;
   }
 
-  td[data-label='Name']::before {
-    display: none;
+  .order-local {
+    grid-area: local;
+    font-size: 0.88rem;
   }
 
-  td[data-label='Name'] > * {
-    justify-self: start;
-  }
-
-  td[data-label='Phone'] {
+  .order-phone {
     grid-area: phone;
   }
 
-  td[data-label='Color'] {
+  .order-color {
     grid-area: color;
+    justify-self: start;
   }
 
-  td[data-label='Size'] {
+  .order-size {
     grid-area: size;
-  }
-
-  td[data-label='Payment'] {
-    grid-area: payment;
-  }
-
-  td[data-label='Actions'] {
-    grid-area: actions;
-    grid-template-columns: 1fr;
-    align-self: start;
     justify-self: end;
+    align-self: center;
   }
 
-  td[data-label='Actions']::before {
-    display: none;
+  .order-payment {
+    grid-area: payment;
+    justify-self: end;
+    align-self: start;
   }
 
-  td[data-label='Local'],
-  td[data-label='Phone'] {
-    word-break: break-word;
-    overflow-wrap: anywhere;
-    text-align: right;
+  .order-actions {
+    grid-area: actions;
+    justify-content: flex-end;
+    border-top: 1px solid #e7edf4;
+    margin-top: 0.15rem;
+    padding-top: 0.65rem;
   }
 
   .thumb-btn {
-    max-width: 100%;
     gap: 0.4rem;
   }
 
   .thumb-btn img {
-    width: 34px;
-    height: 34px;
-    flex-shrink: 0;
-    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 9px;
   }
 
   .payment-thumb img {
-    width: 36px;
-    height: 36px;
+    display: none;
+  }
+
+  .payment-thumb .status-pill {
+    display: inline-flex;
+  }
+
+  .order-payment > .status-pill {
+    display: inline-flex;
   }
 
   .thumb-btn span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     font-size: 0.92rem;
   }
 
   .size-pill {
-    min-width: 2.2rem;
-    padding: 0.2rem 0.45rem;
-    font-size: 0.82rem;
+    min-width: 2.4rem;
+    padding: 0.35rem 0.55rem;
+    font-size: 0.88rem;
   }
 
   .status-pill {
-    padding: 0.22rem 0.6rem;
-    font-size: 0.75rem;
-  }
-
-  .row-actions {
-    justify-content: flex-end;
-    flex-wrap: nowrap;
-    gap: 0.65rem;
-  }
-
-  .row-actions .link-btn {
-    font-size: 0.9rem;
+    padding: 0.28rem 0.65rem;
+    font-size: 0.78rem;
   }
 
   .color-grid {
@@ -889,21 +884,59 @@ tbody tr:hover {
     padding: 0.58rem 0.35rem;
   }
 
-  .modal-actions {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  td {
-    grid-template-columns: 4.75rem minmax(0, 1fr);
-    gap: 0.4rem;
-  }
-
-  td[data-label='Name'] {
-    font-size: 1rem;
+  .order-name {
+    font-size: 1.02rem;
   }
 
   .color-option {
     font-size: 0.75rem;
     padding: 0.3rem;
+  }
+}
+
+@media (min-width: 721px) {
+  .orders-head {
+    display: grid;
+    grid-template-columns: 1.1fr 1.3fr 1.1fr 1.2fr 0.7fr 1.1fr 0.9fr;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    border-bottom: 1px solid var(--line);
+    background: rgba(247, 250, 252, 0.95);
+  }
+
+  .order-card {
+    display: grid;
+    grid-template-columns: 1.1fr 1.3fr 1.1fr 1.2fr 0.7fr 1.1fr 0.9fr;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    background: transparent;
+  }
+
+  .order-card:hover {
+    background: rgba(217, 233, 251, 0.35);
+  }
+
+  .order-name {
+    font-size: 1rem;
+  }
+
+  .order-local {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .order-phone {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .order-actions {
+    padding-top: 0;
   }
 }
