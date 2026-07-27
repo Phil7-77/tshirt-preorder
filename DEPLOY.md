@@ -1,32 +1,28 @@
-# Cloudflare Pages
+# Cloudflare deploy
 
 Public deploy for this static Vite app.
 
 **GitHub repo:** https://github.com/Phil7-77/tshirt-preorder
 
-## Create the Cloudflare Pages project
+This project includes `wrangler.jsonc` so Cloudflare can upload the built `dist/` folder as static assets.
+
+## Build settings (Workers / Pages CI)
+
+- **Build command:** `npm run build`
+- **Deploy command:** `npx wrangler versions upload`  
+  (or `npx wrangler deploy` if your project uses that)
+- **Output / assets:** `./dist` (configured in `wrangler.jsonc`)
+
+## Connect Git (first time)
 
 1. Sign up / log in at [Cloudflare](https://dash.cloudflare.com/sign-up) (free)
-2. Go to **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-3. Authorize Cloudflare to access GitHub, then select **`Phil7-77/tshirt-preorder`**
-4. Build settings:
-   - **Framework preset:** Vite
-   - **Production branch:** `master`
-   - **Build command:** `npm run build`
-   - **Build output directory:** `dist`
-5. Click **Save and Deploy**
-
-When it finishes, you’ll get a public URL like:
-
-`https://tshirt-preorder.pages.dev`
-
-(or a similar name Cloudflare assigns)
-
-Share that link. Anyone can open it; each phone still keeps its own order list.
+2. **Workers & Pages** → **Create** → connect **`Phil7-77/tshirt-preorder`**
+3. Use the build settings above
+4. Deploy — you’ll get a public `*.workers.dev` or `*.pages.dev` URL
 
 ## Updates later
 
-Push to `master` and Cloudflare rebuilds automatically:
+Push to your connected branch and Cloudflare rebuilds automatically:
 
 ```bash
 git add .
@@ -36,4 +32,4 @@ git push
 
 ## Optional: custom domain
 
-In the Pages project → **Custom domains** → add a domain you own.
+In the project → **Custom domains** → add a domain you own.
