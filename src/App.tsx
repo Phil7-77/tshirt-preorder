@@ -5,29 +5,54 @@ import { ImageLightbox } from './components/ImageLightbox'
 import { OrderFormModal } from './components/OrderFormModal'
 import type { Order, OrderInput } from './types'
 import { downloadCsv } from './utils/csv'
-import { loadOrders, saveOrders } from './utils/storage'
-
-function createId() {
-  return crypto.randomUUID()
-}
+import {
+  createOrder,
+  deleteOrder,
+  fetchOrders,
+  isSheetsConfigured,
+  updateOrder,
+} from './utils/sheetsApi'
 
 export default function App() {
   const [orders, setOrders] = useState<Order[]>([])
-  const [ready, setReady] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<Order | null>(null)
   const [deleting, setDeleting] = useState<Order | null>(null)
   const [preview, setPreview] = useState<{ src: string; alt: string } | null>(null)
+  const sheetsReady = isSheetsConfigured()
+
+  async function refreshOrders() {
+    const next = await fetchOrders()
+    setOrders(next)
+  }
 
   useEffect(() => {
-    setOrders(loadOrders())
-    setReady(true)
-  }, [])
+    if (!sheetsReady) {
+      setLoading(false)
+      return
+    }
 
-  useEffect(() => {
-    if (!ready) return
-    saveOrders(orders)
-  }, [orders, ready])
+    let cancelled = false
+    ;(async () => {
+      try {
+        setError('')
+        await refreshOrders()
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Could not load orders')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [sheetsReady])
 
   function openAdd() {
     setEditing(null)
@@ -39,37 +64,45 @@ export default function App() {
     setModalOpen(true)
   }
 
-  function handleSave(input: OrderInput) {
-    const now = new Date().toISOString()
-    if (editing) {
-      setOrders((current) =>
-        current.map((order) =>
-          order.id === editing.id ? { ...order, ...input, updatedAt: now } : order,
-        ),
-      )
-    } else {
-      setOrders((current) => [
-        {
-          id: createId(),
-          ...input,
-          createdAt: now,
-          updatedAt: now,
-        },
-        ...current,
-      ])
+  async function handleSave(input: OrderInput) {
+    setSaving(true)
+    setError('')
+    try {
+      if (editing) {
+        const updated = await updateOrder(editing.id, input)
+        setOrders((current) =>
+          current.map((order) => (order.id === updated.id ? updated : order)),
+        )
+      } else {
+        const created = await createOrder(input)
+        setOrders((current) => [created, ...current])
+      }
+      setModalOpen(false)
+      setEditing(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save order')
+    } finally {
+      setSaving(false)
     }
-    setModalOpen(false)
-    setEditing(null)
   }
 
   function handleDelete(order: Order) {
     setDeleting(order)
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleting) return
-    setOrders((current) => current.filter((item) => item.id !== deleting.id))
-    setDeleting(null)
+    setSaving(true)
+    setError('')
+    try {
+      await deleteOrder(deleting.id)
+      setOrders((current) => current.filter((item) => item.id !== deleting.id))
+      setDeleting(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not delete order')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -82,21 +115,71 @@ export default function App() {
           <h1>T-Shirt Pre-order</h1>
         </div>
         <div className="top-actions">
-          <button type="button" className="btn secondary" onClick={() => downloadCsv(orders)}>
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => downloadCsv(orders)}
+            disabled={!sheetsReady || loading || orders.length === 0}
+          >
             Export CSV
           </button>
-          <button type="button" className="btn primary" onClick={openAdd}>
+          <button
+            type="button"
+            className="btn primary"
+            onClick={openAdd}
+            disabled={!sheetsReady || loading || saving}
+          >
             Add order
           </button>
         </div>
       </header>
 
+      {!sheetsReady ? (
+        <div className="banner warn">
+          Google Sheets is not configured yet. Add <code>VITE_SHEETS_API_URL</code> and{' '}
+          <code>VITE_SHEETS_API_KEY</code>, then follow <code>SETUP_SHEETS.md</code>.
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="banner error">
+          <span>{error}</span>
+          {sheetsReady ? (
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => {
+                setLoading(true)
+                setError('')
+                void refreshOrders()
+                  .catch((err) =>
+                    setError(err instanceof Error ? err.message : 'Could not load orders'),
+                  )
+                  .finally(() => setLoading(false))
+              }}
+            >
+              Retry
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       <main className="content">
-        {orders.length === 0 ? (
+        {loading ? (
+          <div className="empty">
+            <h2>Loading orders…</h2>
+            <p>Fetching the shared list from Google Sheets.</p>
+          </div>
+        ) : !sheetsReady ? (
+          <div className="empty">
+            <h2>Setup required</h2>
+            <p>Connect the Google Sheet backend before taking orders.</p>
+          </div>
+        ) : orders.length === 0 ? (
           <div className="empty">
             <h2>No orders yet</h2>
-            <p>Add the first pre-order to start the list on this phone or browser.</p>
-            <button type="button" className="btn primary" onClick={openAdd}>
+            <p>Add the first pre-order. Everyone using this link shares the same list.</p>
+            <button type="button" className="btn primary" onClick={openAdd} disabled={saving}>
               Add order
             </button>
           </div>
@@ -168,13 +251,19 @@ export default function App() {
                     </td>
                     <td data-label="Actions">
                       <div className="row-actions">
-                        <button type="button" className="link-btn" onClick={() => openEdit(order)}>
+                        <button
+                          type="button"
+                          className="link-btn"
+                          onClick={() => openEdit(order)}
+                          disabled={saving}
+                        >
                           Edit
                         </button>
                         <button
                           type="button"
                           className="link-btn danger"
                           onClick={() => handleDelete(order)}
+                          disabled={saving}
                         >
                           Delete
                         </button>
@@ -191,19 +280,28 @@ export default function App() {
       {modalOpen ? (
         <OrderFormModal
           order={editing}
+          busy={saving}
           onClose={() => {
+            if (saving) return
             setModalOpen(false)
             setEditing(null)
           }}
-          onSave={handleSave}
+          onSave={(input) => {
+            void handleSave(input)
+          }}
         />
       ) : null}
 
       {deleting ? (
         <DeleteConfirmModal
           order={deleting}
-          onClose={() => setDeleting(null)}
-          onConfirm={confirmDelete}
+          onClose={() => {
+            if (saving) return
+            setDeleting(null)
+          }}
+          onConfirm={() => {
+            void confirmDelete()
+          }}
         />
       ) : null}
 
@@ -214,6 +312,8 @@ export default function App() {
           onClose={() => setPreview(null)}
         />
       ) : null}
+
+      {saving ? <div className="saving-toast">Saving…</div> : null}
     </div>
   )
 }

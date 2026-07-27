@@ -6,6 +6,7 @@ import { compressImage } from '../utils/compressImage'
 
 interface OrderFormModalProps {
   order: Order | null
+  busy?: boolean
   onClose: () => void
   onSave: (input: OrderInput) => void
 }
@@ -19,7 +20,7 @@ const emptyForm = {
   paymentDataUrl: '',
 }
 
-export function OrderFormModal({ order, onClose, onSave }: OrderFormModalProps) {
+export function OrderFormModal({ order, busy = false, onClose, onSave }: OrderFormModalProps) {
   const titleId = useId()
   const [form, setForm] = useState(emptyForm)
   const [compressing, setCompressing] = useState(false)
@@ -205,11 +206,11 @@ export function OrderFormModal({ order, onClose, onSave }: OrderFormModalProps) 
           {error ? <p className="form-error">{error}</p> : null}
 
           <div className="modal-actions">
-            <button type="button" className="btn secondary" onClick={onClose}>
+            <button type="button" className="btn secondary" onClick={onClose} disabled={busy || compressing}>
               Cancel
             </button>
-            <button type="submit" className="btn primary" disabled={compressing}>
-              {compressing ? 'Compressing…' : order ? 'Save changes' : 'Add order'}
+            <button type="submit" className="btn primary" disabled={busy || compressing}>
+              {compressing ? 'Compressing…' : busy ? 'Saving…' : order ? 'Save changes' : 'Add order'}
             </button>
           </div>
         </form>

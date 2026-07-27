@@ -13,6 +13,13 @@ This project includes `wrangler.jsonc` so Cloudflare can upload the built `dist/
   (or `npx wrangler deploy` if your project uses that)
 - **Output / assets:** `./dist` (configured in `wrangler.jsonc`)
 
+### Required build environment variables
+
+After finishing [SETUP_SHEETS.md](./SETUP_SHEETS.md), add these in Cloudflare → Worker → Settings → Variables:
+
+- `VITE_SHEETS_API_URL` — Apps Script web app URL  
+- `VITE_SHEETS_API_KEY` — same secret as in `Code.gs`  
+
 ## Connect Git (first time)
 
 1. Sign up / log in at [Cloudflare](https://dash.cloudflare.com/sign-up) (free)
