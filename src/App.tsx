@@ -277,7 +277,11 @@ export default function App() {
                         }
                         title="Preview payment"
                       >
-                        <img src={order.paymentDataUrl} alt="" />
+                        <img
+                          src={order.paymentDataUrl}
+                          alt=""
+                          referrerPolicy="no-referrer"
+                        />
                         <span className="status-pill paid">Paid</span>
                       </button>
                     ) : (

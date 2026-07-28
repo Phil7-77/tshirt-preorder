@@ -1,5 +1,6 @@
 import { LOCALS } from '../constants'
 import type { Local, Order, OrderInput, ShirtColor, ShirtSize } from '../types'
+import { toDisplayPaymentUrl } from './paymentUrl'
 
 const API_URL = import.meta.env.VITE_SHEETS_API_URL as string | undefined
 const API_KEY = import.meta.env.VITE_SHEETS_API_KEY as string | undefined
@@ -52,7 +53,7 @@ function normalizeOrder(raw: Order): Order {
     local: normalizeLocal(raw.local),
     color: raw.color as ShirtColor,
     size: raw.size as ShirtSize,
-    paymentDataUrl: raw.paymentDataUrl || '',
+    paymentDataUrl: toDisplayPaymentUrl(raw.paymentDataUrl || ''),
   }
 }
 

@@ -190,7 +190,11 @@ export function OrderFormModal({ order, busy = false, onClose, onSave }: OrderFo
 
           {form.paymentDataUrl ? (
             <div className="payment-preview">
-              <img src={form.paymentDataUrl} alt="Payment screenshot preview" />
+              <img
+                src={form.paymentDataUrl}
+                alt="Payment screenshot preview"
+                referrerPolicy="no-referrer"
+              />
               <button
                 type="button"
                 className="link-btn"

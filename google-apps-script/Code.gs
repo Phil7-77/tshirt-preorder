@@ -208,6 +208,11 @@ function findRowIndex_(values, id) {
 }
 
 function rowToOrder_(row) {
+  var fileId = String(row[7] || '')
+  var paymentUrl = String(row[8] || '')
+  if (fileId) {
+    paymentUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1200'
+  }
   return {
     id: String(row[0] || ''),
     local: String(row[1] || ''),
@@ -215,7 +220,7 @@ function rowToOrder_(row) {
     phone: String(row[3] || ''),
     color: String(row[4] || ''),
     size: String(row[5] || ''),
-    paymentDataUrl: String(row[8] || ''),
+    paymentDataUrl: paymentUrl,
     createdAt: String(row[9] || ''),
     updatedAt: String(row[10] || ''),
   }
@@ -232,10 +237,15 @@ function upsertPayment_(orderId, paymentDataUrl, existingFileId) {
   }
 
   if (/^https?:\/\//i.test(paymentDataUrl)) {
+    var fileId = existingFileId
+    var idMatch = paymentDataUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/)
+    if (idMatch && idMatch[1]) fileId = idMatch[1]
     return {
       paymentStatus: 'Paid',
-      paymentFileId: existingFileId || '',
-      paymentUrl: paymentDataUrl,
+      paymentFileId: fileId || '',
+      paymentUrl: fileId
+        ? 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1200'
+        : paymentDataUrl,
     }
   }
 
@@ -261,7 +271,7 @@ function upsertPayment_(orderId, paymentDataUrl, existingFileId) {
   return {
     paymentStatus: 'Paid',
     paymentFileId: file.getId(),
-    paymentUrl: 'https://drive.google.com/uc?export=view&id=' + file.getId(),
+    paymentUrl: 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w1200',
   }
 }
 

@@ -24,6 +24,7 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
         src={src}
         alt={alt}
         className="lightbox-image"
+        referrerPolicy="no-referrer"
         onClick={(event) => event.stopPropagation()}
       />
     </div>
